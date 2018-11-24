@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"testing"
 )
 
@@ -24,6 +25,22 @@ func TestEndToEnd(t *testing.T) {
 
 	for i := 0; i < len(comparable); i++ {
 		if !contain(results, comparable[i]) {
+			t.Errorf("Result should contain: %s", comparable[i])
+		}
+	}
+	var decoded FormattedResult
+
+	err := json.Unmarshal([]byte(board.Result()), &decoded)
+	if err != nil {
+		t.Errorf("Problems with decoding board.Results")
+	}
+
+	if decoded.Score != 6 {
+		t.Errorf("Expected score to be %d, but received %d", 6, decoded.Score)
+	}
+
+	for i := 0; i < len(comparable); i++ {
+		if !contain(decoded.Words, comparable[i]) {
 			t.Errorf("Result should contain: %s", comparable[i])
 		}
 	}
