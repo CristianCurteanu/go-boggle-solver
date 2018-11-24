@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -11,12 +12,12 @@ import (
 )
 
 func main() {
-	dictionary := NewDictionary("./dictionary.txt")
-	scheme := [][]string{
-		[]string{"A", "C", "B"},
-		[]string{"L", "T", "M"},
-		[]string{"M", "N", "O"},
-	}
+	path := flag.String("dictionary", "./dictionary.txt", "Path to dictionary file")
+	schemePath := flag.String("scheme", "./scheme", "Path to boggle board schema definition file")
+	flag.Parse()
+	dictionary := NewDictionary(*path)
+	scheme := ParseScheme(*schemePath)
+
 	board := NewBoard(scheme, dictionary)
 
 	board.FindWords()
@@ -191,6 +192,27 @@ func (b Board) InitQueue() *Queue {
 
 type Dictionary struct {
 	trie *Trie
+}
+
+func ParseScheme(path string) [][]string {
+	var result [][]string
+	file, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		char := strings.Split(scanner.Text(), " ")
+		for _, ch := range char {
+			if len(ch) > 1 {
+				log.Fatal("Error: There should be a single character")
+			}
+		}
+		result = append(result, char)
+	}
+	return result
 }
 
 // A construction function for Dictionary struct
